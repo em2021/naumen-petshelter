@@ -12,8 +12,7 @@ public class Constants {
     public static final String ALL_ANIMALS_BUTTON = "all_animals";
     public static final String ANIMALS_BY_TYPE_BUTTON = "animals_by_type";
     public static final String ANIMAL_BY_ID_BUTTON = "animal_by_id";
-    public static final String RETURN_TO_VIEW_SELECTION_BUTTON = "return_to_view_selection";
-    public static final String ALL_ANIMALS_TEXT = "The following animals are in search of a new home:\"";
+    public static final String ALL_ANIMALS_TEXT = "The following animals are in search of a new home:";
     public static final String ANIMALS_BY_TYPE_TEXT = "What animals you would like to see?";
     public static final String CATS_BUTTON = "cats";
     public static final String DOGS_BUTTON = "dogs";

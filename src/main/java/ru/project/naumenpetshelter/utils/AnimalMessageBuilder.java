@@ -9,7 +9,7 @@ import static ru.project.naumenpetshelter.constants.Constants.*;
 public class AnimalMessageBuilder {
     
     public String buildAnimalsListMessage(List<Animal> animals) {
-        StringBuilder sb = new StringBuilder(ALL_ANIMALS_TEXT);
+        StringBuilder sb = new StringBuilder(ALL_ANIMALS_TEXT).append("\n\n");
         animals.forEach(s -> {
             sb.append("name: ").append(s.getName()).append("\n");
             sb.append("id: ").append(s.getId()).append("\n");

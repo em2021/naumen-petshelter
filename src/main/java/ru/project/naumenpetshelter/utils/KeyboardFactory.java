@@ -39,7 +39,7 @@ public class KeyboardFactory {
     public static ReplyKeyboard getViewNavigationMenuKeyboard() {
         List<InlineKeyboardButton> topRow = new ArrayList();
         InlineKeyboardButton returnToViewSelectionBtn = new InlineKeyboardButton("Return to view selection");
-        returnToViewSelectionBtn.setCallbackData("return_to_view_selection");
+        returnToViewSelectionBtn.setCallbackData("view_animals");
         topRow.add(returnToViewSelectionBtn);
         List<InlineKeyboardButton> middleRow = new ArrayList();
         InlineKeyboardButton animalById = new InlineKeyboardButton("Animal by id");
@@ -54,8 +54,8 @@ public class KeyboardFactory {
 
     public static ReplyKeyboard getAnimalsByTypeKeyboard() {
         List<InlineKeyboardButton> topRow = new ArrayList();
-        InlineKeyboardButton returnToViewSelectionBtn = new InlineKeyboardButton("Return to animal types");
-        returnToViewSelectionBtn.setCallbackData("animals_by_type");
+        InlineKeyboardButton returnToViewSelectionBtn = new InlineKeyboardButton("Return to view selection");
+        returnToViewSelectionBtn.setCallbackData("view_animals");
         topRow.add(returnToViewSelectionBtn);
         List<InlineKeyboardButton> middleRow = new ArrayList();
         InlineKeyboardButton cats = new InlineKeyboardButton("Cats");

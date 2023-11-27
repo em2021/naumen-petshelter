@@ -81,32 +81,25 @@ public class PetshelterBot extends AbilityBot {
 
     public void replyToCallbackQuery(long chatId, CallbackQuery callbackQuery) {
         switch (callbackQuery.getData()) {
-            case VIEW_ANIMALS_BUTTON -> replyToViewAnimals(chatId);
             case STOP_BUTTON -> replyToStop(chatId);
+            case VIEW_ANIMALS_BUTTON -> replyToViewAnimals(chatId);
             case ALL_ANIMALS_BUTTON -> replyToAllAnimals(chatId);
             case ANIMALS_BY_TYPE_BUTTON -> replyToAnimalsByType(chatId);
             case ANIMAL_BY_ID_BUTTON -> replyToAnimalById(chatId);
-            case RETURN_TO_VIEW_SELECTION_BUTTON -> replyToViewAnimals(chatId);
             case CATS_BUTTON -> replyToAnimalTypeChoice(chatId, CATS_BUTTON);
             case DOGS_BUTTON -> replyToAnimalTypeChoice(chatId, DOGS_BUTTON);
             default -> unexpectedMessage(chatId);
         }
     }
 
-    public void replyToId(long chatId, Integer id) {
+    public void replyToStop(long chatId) {
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
-        Animal animal = service.getAnimalById(id);
-        String messageText = ANIMAL_NOT_FOUND_MESSAGE;
-        if (animal != null) {
-            messageText = messageBuilder.buildAnimalMessage(animal);
-        }
-        message.setChatId(chatId);
-        message.setText(messageText);
-        message.setReplyMarkup(KeyboardFactory.getViewNavigationMenuKeyboard());
+        message.setText(STOP_TEXT);
+        chatStates.remove(chatId);
+        message.setReplyMarkup(new ReplyKeyboardRemove(true));
         try {
             sender.execute(message);
-            chatStates.put(chatId, ANIMAL_VIEW_SELECTION);
         } catch (TelegramApiException ex) {
             System.out.println(ex.getMessage());
         }
@@ -120,19 +113,6 @@ public class PetshelterBot extends AbilityBot {
         try {
             sender.execute(message);
             chatStates.put(chatId, ANIMAL_VIEW_SELECTION);
-        } catch (TelegramApiException ex) {
-            System.out.println(ex.getMessage());
-        }
-    }
-
-    public void replyToStop(long chatId) {
-        SendMessage message = new SendMessage();
-        message.setChatId(chatId);
-        message.setText(STOP_TEXT);
-        chatStates.remove(chatId);
-        message.setReplyMarkup(new ReplyKeyboardRemove(true));
-        try {
-            sender.execute(message);
         } catch (TelegramApiException ex) {
             System.out.println(ex.getMessage());
         }
@@ -166,14 +146,11 @@ public class PetshelterBot extends AbilityBot {
         }
     }
 
-    public void replyToAnimalTypeChoice(long chatId, String type) {
-        List<Animal> animals = service.listAnimalsByType(type);
-        String messageText = messageBuilder.buildAnimalsListMessage(animals);
+    public void replyToAnimalById(long chatId) {
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
-        message.setText(messageText);
-        chatStates.put(chatId, VIEWING_ALL_ANIMALS);
-        message.setReplyMarkup(KeyboardFactory.getViewNavigationMenuKeyboard());
+        message.setText(ANIMAL_BY_ID_TEXT);
+        chatStates.put(chatId, AWAITING_ANIMAL_ID);
         try {
             sender.execute(message);
         } catch (TelegramApiException ex) {
@@ -181,11 +158,33 @@ public class PetshelterBot extends AbilityBot {
         }
     }
 
-    public void replyToAnimalById(long chatId) {
+    public void replyToId(long chatId, Integer id) {
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
-        message.setText(ANIMAL_BY_ID_TEXT);
-        chatStates.put(chatId, AWAITING_ANIMAL_ID);
+        Animal animal = service.getAnimalById(id);
+        String messageText = ANIMAL_NOT_FOUND_MESSAGE;
+        if (animal != null) {
+            messageText = messageBuilder.buildAnimalMessage(animal);
+        }
+        message.setChatId(chatId);
+        message.setText(messageText);
+        message.setReplyMarkup(KeyboardFactory.getViewNavigationMenuKeyboard());
+        try {
+            sender.execute(message);
+            chatStates.put(chatId, VIEWING_ANIMALS_BY_ID);
+        } catch (TelegramApiException ex) {
+            System.out.println(ex.getMessage());
+        }
+    }
+
+    public void replyToAnimalTypeChoice(long chatId, String type) {
+        List<Animal> animals = service.listAnimalsByType(type);
+        String messageText = messageBuilder.buildAnimalsListMessage(animals);
+        SendMessage message = new SendMessage();
+        message.setChatId(chatId);
+        message.setText(messageText);
+        chatStates.put(chatId, VIEWING_ANIMALS_BY_TYPE);
+        message.setReplyMarkup(KeyboardFactory.getViewNavigationMenuKeyboard());
         try {
             sender.execute(message);
         } catch (TelegramApiException ex) {
