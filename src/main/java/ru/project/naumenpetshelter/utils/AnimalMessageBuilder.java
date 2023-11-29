@@ -7,7 +7,7 @@ import java.util.List;
 import static ru.project.naumenpetshelter.constants.Constants.*;
 
 public class AnimalMessageBuilder {
-    
+
     public String buildAnimalsListMessage(List<Animal> animals) {
         StringBuilder sb = new StringBuilder(ALL_ANIMALS_TEXT).append("\n\n");
         animals.forEach(s -> {
@@ -33,7 +33,6 @@ public class AnimalMessageBuilder {
         sb.append("weight: ").append(animal.getWeight()).append("\n");
         sb.append("height: ").append(animal.getHeight()).append("\n");
         sb.append("description: ").append(animal.getDescription()).append("\n");
-        sb.append("photo: ").append(animal.getPhoto_url()).append("\n");
         return sb.toString();
     }
 }

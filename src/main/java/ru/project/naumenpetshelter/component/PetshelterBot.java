@@ -1,12 +1,15 @@
 package ru.project.naumenpetshelter.component;
 
+import org.apache.tomcat.util.json.ParseException;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.telegram.abilitybots.api.bot.AbilityBot;
 import org.telegram.abilitybots.api.bot.BaseAbilityBot;
 import org.telegram.abilitybots.api.objects.*;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -16,7 +19,11 @@ import ru.project.naumenpetshelter.model.Animal;
 import ru.project.naumenpetshelter.service.AnimalService;
 import ru.project.naumenpetshelter.utils.AnimalMessageBuilder;
 import ru.project.naumenpetshelter.utils.KeyboardFactory;
+import ru.project.naumenpetshelter.utils.LinkUtils;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -159,21 +166,40 @@ public class PetshelterBot extends AbilityBot {
     }
 
     public void replyToId(long chatId, Integer id) {
-        SendMessage message = new SendMessage();
-        message.setChatId(chatId);
         Animal animal = service.getAnimalById(id);
         String messageText = ANIMAL_NOT_FOUND_MESSAGE;
+        SendPhoto photo = new SendPhoto();
         if (animal != null) {
             messageText = messageBuilder.buildAnimalMessage(animal);
+            try {
+                URL url = new URL(LinkUtils.getDownloadLink(animal.getPhoto_url(), "href"));
+                photo.setPhoto((new InputFile(url.openStream(), LinkUtils.getFileName(url, "filename"))));
+            } catch (NullPointerException | IOException | URISyntaxException
+                     | InterruptedException | ParseException ex) {
+                System.out.println(ex.getMessage());
+            }
         }
-        message.setChatId(chatId);
-        message.setText(messageText);
-        message.setReplyMarkup(KeyboardFactory.getViewNavigationMenuKeyboard());
-        try {
-            sender.execute(message);
-            chatStates.put(chatId, VIEWING_ANIMALS_BY_ID);
-        } catch (TelegramApiException ex) {
-            System.out.println(ex.getMessage());
+        if (photo.getFile() != null) {
+            photo.setChatId(chatId);
+            photo.setCaption(messageText);
+            photo.setReplyMarkup(KeyboardFactory.getViewNavigationMenuKeyboard());
+            try {
+                sender.sendPhoto(photo);
+                chatStates.put(chatId, VIEWING_ANIMALS_BY_ID);
+            } catch (TelegramApiException ex) {
+                System.out.println(ex.getMessage());
+            }
+        } else {
+            SendMessage message = new SendMessage();
+            message.setChatId(chatId);
+            message.setText(messageText);
+            message.setReplyMarkup(KeyboardFactory.getViewNavigationMenuKeyboard());
+            try {
+                sender.execute(message);
+                chatStates.put(chatId, VIEWING_ANIMALS_BY_ID);
+            } catch (TelegramApiException ex) {
+                System.out.println(ex.getMessage());
+            }
         }
     }
 
