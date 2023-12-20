@@ -7,7 +7,6 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import ru.project.naumenpetshelter.model.Animal;
 import ru.project.naumenpetshelter.repository.AnimalCrudRepository;
-import ru.project.naumenpetshelter.service.AnimalService;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,9 +18,9 @@ import static org.mockito.Mockito.times;
 public class AnimalServiceTests {
 
     @Mock
-    AnimalCrudRepository repository;
+    private AnimalCrudRepository repository;
     @InjectMocks
-    AnimalService service;
+    private AnimalService service;
     private AutoCloseable closeable;
 
     @BeforeAll
