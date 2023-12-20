@@ -5,7 +5,9 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.telegram.abilitybots.api.bot.AbilityBot;
 import org.telegram.abilitybots.api.bot.BaseAbilityBot;
+import org.telegram.abilitybots.api.db.DBContext;
 import org.telegram.abilitybots.api.objects.*;
+import org.telegram.abilitybots.api.sender.MessageSender;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
@@ -40,12 +42,17 @@ public class PetshelterBot extends AbilityBot {
     private final Map<Long, UserState> chatStates;
 
 
-    public PetshelterBot(Environment env, AnimalService service, AnimalMessageBuilder messageBuilder) {
+    public PetshelterBot(Environment env, AnimalService service, AnimalMessageBuilder messageBuilder, DBContext db) {
         super(env.getProperty("petshelter.bot.token"),
-                env.getProperty("petshelter.bot.name"));
+                env.getProperty("petshelter.bot.name"),
+                db);
         this.service = service;
         this.messageBuilder = messageBuilder;
         chatStates = db.getMap(CHAT_STATES);
+    }
+
+    public void setMessageSender(MessageSender sender) {
+        this.sender = sender;
     }
 
     public Ability startBot() {
@@ -70,7 +77,8 @@ public class PetshelterBot extends AbilityBot {
         BiConsumer<BaseAbilityBot, Update> action = (abilityBot, upd) ->
                 replyToId(upd.getMessage().getChatId(),
                         Integer.parseInt(upd.getMessage().getText()));
-        return Reply.of(action, Flag.MESSAGE, upd -> !upd.getMessage().getText().equals("/start"), upd -> userIsActive(getChatId(upd)));
+        return Reply.of(action, Flag.MESSAGE, upd -> !upd.getMessage().getText().equals("/start"),
+                upd -> userIsActive(getChatId(upd)));
     }
 
     public void replyToStart(long chatId) {
@@ -92,9 +100,9 @@ public class PetshelterBot extends AbilityBot {
             case VIEW_ANIMALS_BUTTON -> replyToViewAnimals(chatId);
             case ALL_ANIMALS_BUTTON -> replyToAllAnimals(chatId);
             case ANIMALS_BY_TYPE_BUTTON -> replyToAnimalsByType(chatId);
-            case ANIMAL_BY_ID_BUTTON -> replyToAnimalById(chatId);
             case CATS_BUTTON -> replyToAnimalTypeChoice(chatId, CATS_BUTTON);
             case DOGS_BUTTON -> replyToAnimalTypeChoice(chatId, DOGS_BUTTON);
+            case ANIMAL_BY_ID_BUTTON -> replyToAnimalById(chatId);
             default -> unexpectedMessage(chatId);
         }
     }
@@ -153,6 +161,21 @@ public class PetshelterBot extends AbilityBot {
         }
     }
 
+    public void replyToAnimalTypeChoice(long chatId, String type) {
+        List<Animal> animals = service.listAnimalsByType(type);
+        String messageText = messageBuilder.buildAnimalsListMessage(animals);
+        SendMessage message = new SendMessage();
+        message.setChatId(chatId);
+        message.setText(messageText);
+        chatStates.put(chatId, VIEWING_ANIMALS_BY_TYPE);
+        message.setReplyMarkup(KeyboardFactory.getViewNavigationMenuKeyboard());
+        try {
+            sender.execute(message);
+        } catch (TelegramApiException ex) {
+            System.out.println(ex.getMessage());
+        }
+    }
+
     public void replyToAnimalById(long chatId) {
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
@@ -203,22 +226,7 @@ public class PetshelterBot extends AbilityBot {
         }
     }
 
-    public void replyToAnimalTypeChoice(long chatId, String type) {
-        List<Animal> animals = service.listAnimalsByType(type);
-        String messageText = messageBuilder.buildAnimalsListMessage(animals);
-        SendMessage message = new SendMessage();
-        message.setChatId(chatId);
-        message.setText(messageText);
-        chatStates.put(chatId, VIEWING_ANIMALS_BY_TYPE);
-        message.setReplyMarkup(KeyboardFactory.getViewNavigationMenuKeyboard());
-        try {
-            sender.execute(message);
-        } catch (TelegramApiException ex) {
-            System.out.println(ex.getMessage());
-        }
-    }
-
-    private void unexpectedMessage(long chatId) {
+    public void unexpectedMessage(long chatId) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
         sendMessage.setText("Sorry, unexpected message(((");
