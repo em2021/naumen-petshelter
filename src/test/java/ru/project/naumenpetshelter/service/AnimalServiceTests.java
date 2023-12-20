@@ -1,4 +1,4 @@
-package ru.project.naumenpetshelter;
+package ru.project.naumenpetshelter.service;
 
 import org.junit.jupiter.api.*;
 import org.mockito.InjectMocks;

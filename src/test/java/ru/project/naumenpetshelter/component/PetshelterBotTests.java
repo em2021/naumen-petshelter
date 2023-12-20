@@ -1,4 +1,4 @@
-package ru.project.naumenpetshelter;
+package ru.project.naumenpetshelter.component;
 
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
