@@ -1,6 +1,7 @@
 package ru.project.naumenpetshelter.component;
 
 import org.apache.tomcat.util.json.ParseException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.telegram.abilitybots.api.bot.AbilityBot;
@@ -40,6 +41,8 @@ public class PetshelterBot extends AbilityBot {
     private final AnimalService service;
     private final AnimalMessageBuilder messageBuilder;
     private final Map<Long, UserState> chatStates;
+    @Value("${petshelter.bot.creator.id}")
+    private long creatorId;
 
 
     public PetshelterBot(Environment env, AnimalService service, AnimalMessageBuilder messageBuilder, DBContext db) {
@@ -243,6 +246,6 @@ public class PetshelterBot extends AbilityBot {
 
     @Override
     public long creatorId() {
-        return 1L;
+        return creatorId;
     }
 }
